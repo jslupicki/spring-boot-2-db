@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: spring-boot-2-db
+  datasource:
+    db1:
+      driver-class-name: org.h2.Driver
+      jdbc-url: jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1
+      username: sa
+      password: password
+    db2:
+      driver-class-name: org.h2.Driver
+      jdbc-url: jdbc:h2:mem:db2;DB_CLOSE_DELAY=-1
+      username: sa
+      password: password
+
+  flyway:
+    enabled: false  # Wy??czamy domy?ln? konfiguracj? Flyway
