@@ -1,6 +1,8 @@
 ## Project Description
 
-This project researches how to use **Spring Data JDBC** to work with two different databases simultaneously within a single application. It showcases managing two independent database connections (in this example: two H2 in-memory databases), each with its own repository and data source configuration.
+This project researches how to use **Spring Data JDBC** to work with two different databases simultaneously within a
+single application. It showcases managing two independent database connections (in this example: two H2 in-memory
+databases), each with its own repository and data source configuration.
 
 ## Technologies
 
@@ -49,6 +51,33 @@ This project researches how to use **Spring Data JDBC** to work with two differe
 
 ## Configuration
 
-The default `application.yaml` contains the full configuration for both H2 databases (`db1`, `db2`), including connection pool settings (HikariCP). Each database has its own set of parameters.
+The default `application.yaml` contains the full configuration for both H2 databases (`db1`, `db2`), including
+connection pool settings (HikariCP). Each database has its own set of parameters.
 
-Spring Boot managed Flyway migrations are disabled as they are performed programmatically (FlywayMigrate).
+Spring Boot managed Flyway migrations are disabled as they are performed
+programmatically ([FlywayMigrate](src/main/kotlin/com/slupicki/springboot2db/config/FlywayMigrate.kt)).
+
+## Technical Details
+
+I didn't find a way to use pure `@EnableJdbcRepositories` annotations to enable repositories for multiple data sources.
+The final obstacle was that the `@EnableJdbcRepositories` annotation does not have `mappingContextRef` to provide custom `mappingContext`.
+I tried multiple approaches, but I always ended up with the same error that there are 2 `JdbcMappingContext` beans and
+`Spring Data JDBC` does not know which one to use.
+
+**Solution**: The solution which I found is to create repository beans manually in the configuration classes.
+Example [Db1Config](src/main/kotlin/com/slupicki/springboot2db/config/Db1Config.kt) and method `db1SomeEntityRepository`
+which use `JdbcRepositoryFactory` to create the repository bean. In this way we will have full control over the
+repository creation process and we can specify which `JdbcMappingContext` to use for each repository.
+Also repositories are the same as created by Spring Data JDBC, so they have all the features like queries
+based on method names, etc.
+
+
+- **Data Sources**: Two data sources are defined in [`application.yaml`](src/main/resources/application.yaml):
+  - `db1`: Represents the first H2 database.
+  - `db2`: Represents the second H2 database.
+- **Repositories**: Each database has its own repository interface:
+  - [`Db1SomeEntityRepository`](src/main/kotlin/com/slupicki/springboot2db/repo/db1/Db1SomeEntityRepository.kt): For operations on the first database.
+  - [`Db2SomeEntityRepository`](src/main/kotlin/com/slupicki/springboot2db/repo/db2/Db2SomeEntityRepository.kt): For operations on the second database.
+- **DB Configurations**: Each database has its own configuration class:
+  - [`Db1Config`](src/main/kotlin/com/slupicki/springboot2db/config/Db1Config.kt): Configuration for the first database.
+  - [`Db2Config`](src/main/kotlin/com/slupicki/springboot2db/config/Db2Config.kt): Configuration for the second database.
