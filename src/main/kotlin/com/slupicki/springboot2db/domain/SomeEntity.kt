@@ -7,7 +7,8 @@ import org.springframework.data.relational.core.mapping.Table
 @Table("SOME_ENTITY")
 data class SomeEntity(
     @Id
-    val id: String,
+    @Column("ID")
+    val id: Long? = null,
     @Column("NAME")
     val name: String,
 )
