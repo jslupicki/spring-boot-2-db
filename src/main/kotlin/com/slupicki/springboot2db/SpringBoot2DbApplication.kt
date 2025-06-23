@@ -36,6 +36,10 @@ class SpringBoot2DbApplication {
         }
         log.info("DB1 Entities: ${db1SomeEntityRepository.findAll()}")
         log.info("DB2 Entities: ${db2SomeEntityRepository.findAll()}")
+        log.info("DB1 Entities like %3: ${db1SomeEntityRepository.findByNameLike("%3")}")
+        log.info("DB2 Entities like %2: ${db2SomeEntityRepository.findByNameLike("%2")}")
+        log.info("DB1 Entities like %Entity% and id <= 3 : ${db1SomeEntityRepository.findByNameLikeAndIdLessThanEqual("%Entity%", 3)}")
+        log.info("DB2 Entities like %Entity% and id <= 2: ${db2SomeEntityRepository.findByNameLikeAndIdLessThanEqual("%Entity%", 2)}")
         log.info("Application ended")
     }
 }
