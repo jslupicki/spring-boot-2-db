@@ -29,17 +29,10 @@ class SpringBoot2DbApplication {
     ) = CommandLineRunner { _ ->
         log.info("Application started")
         (1..5).forEach { i ->
-            db1SomeEntityRepository.save(
-                SomeEntity(
-                    id = null,
-                    name = "DB1 Entity $i"
-                )
-            )
-            db2SomeEntityRepository.save(
-                SomeEntity(
-                    name = "DB2 Entity $i"
-                )
-            )
+            val db1Entity = db1SomeEntityRepository.save(SomeEntity(name = "DB1 Entity $i"))
+            val db2Entity = db2SomeEntityRepository.save(SomeEntity(name = "DB2 Entity $i"))
+            log.info("$db1Entity saved to DB1")
+            log.info("$db2Entity saved to DB2")
         }
         log.info("DB1 Entities: ${db1SomeEntityRepository.findAll()}")
         log.info("DB2 Entities: ${db2SomeEntityRepository.findAll()}")
