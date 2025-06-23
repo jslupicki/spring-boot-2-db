@@ -1,17 +1,23 @@
 spring:
   application:
     name: spring-boot-2-db
-  datasource:
-    db1:
-      driver-class-name: org.h2.Driver
-      jdbc-url: jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1
-      username: sa
-      password: password
-    db2:
-      driver-class-name: org.h2.Driver
-      jdbc-url: jdbc:h2:mem:db2;DB_CLOSE_DELAY=-1
-      username: sa
-      password: password
-
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
   flyway:
-    enabled: false  # Wy??czamy domy?ln? konfiguracj? Flyway
+    enabled: false
+
+db1:
+  driver-class-name: org.h2.Driver
+  jdbc-url: jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1
+  username: sa
+  password: password
+  hikari:
+    pool-name: HikariPool-DB1
+db2:
+  driver-class-name: org.h2.Driver
+  jdbc-url: jdbc:h2:mem:db2;DB_CLOSE_DELAY=-1
+  username: sa
+  password: password
+  hikari:
+    pool-name: HikariPool-DB2
+
