@@ -1,10 +1,12 @@
-package com.slupicki.springboot2db.repo.db1
+package com.slupicki.springboot2db.config
 
+import com.slupicki.springboot2db.repo.db2.Db2SomeEntityRepository
 import com.zaxxer.hikari.HikariDataSource
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.ApplicationContext
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Lazy
@@ -18,7 +20,7 @@ import org.springframework.data.jdbc.core.convert.RelationResolver
 import org.springframework.data.jdbc.core.mapping.JdbcMappingContext
 import org.springframework.data.jdbc.core.mapping.JdbcSimpleTypes
 import org.springframework.data.jdbc.repository.config.AbstractJdbcConfiguration
-import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories
+import org.springframework.data.jdbc.repository.support.JdbcRepositoryFactory
 import org.springframework.data.mapping.model.SimpleTypeHolder
 import org.springframework.data.relational.RelationalManagedTypes
 import org.springframework.data.relational.core.dialect.Dialect
@@ -31,43 +33,37 @@ import java.util.Optional
 import javax.sql.DataSource
 
 @Configuration
-@EnableJdbcRepositories(
-    basePackageClasses = [Db1Config::class],
-    jdbcOperationsRef = "db1JdbcTemplate",
-    dataAccessStrategyRef = "db1DataAccessStrategyBean",
-    transactionManagerRef = "db1TransactionManager",
-)
-class Db1Config : AbstractJdbcConfiguration() {
+class Db2Config : AbstractJdbcConfiguration() {
 
     @Bean
-    @ConfigurationProperties("db1")
-    fun db1DataSourceProperties(): DataSourceProperties = DataSourceProperties()
+    @ConfigurationProperties("db2")
+    fun db2DataSourceProperties(): DataSourceProperties = DataSourceProperties()
 
     @Bean
-    fun db1DataSource(): DataSource =
-        db1DataSourceProperties()
+    fun db2DataSource(): DataSource =
+        db2DataSourceProperties()
             .initializeDataSourceBuilder()
             .type(HikariDataSource::class.java)
             .build()
 
     @Bean
-    fun db1JdbcTemplate(db1DataSource: DataSource): NamedParameterJdbcTemplate =
-        NamedParameterJdbcTemplate(db1DataSource)
+    fun db2JdbcTemplate(db2DataSource: DataSource): NamedParameterJdbcTemplate =
+        NamedParameterJdbcTemplate(db2DataSource)
 
     @Bean
-    fun db1TransactionManager(db1DataSource: DataSource): DataSourceTransactionManager =
-        DataSourceTransactionManager(db1DataSource)
+    fun db2TransactionManager(db2DataSource: DataSource): DataSourceTransactionManager =
+        DataSourceTransactionManager(db2DataSource)
 
     @Bean
-    fun db1NamingStrategy(): NamingStrategy = DefaultNamingStrategy.INSTANCE
+    fun db2NamingStrategy(): NamingStrategy = DefaultNamingStrategy.INSTANCE
 
-    @Bean("db1JdbcMappingContext")
+    @Bean("db2JdbcMappingContext")
     override fun jdbcMappingContext(
-        @Qualifier("db1NamingStrategy")
+        @Qualifier("db2NamingStrategy")
         namingStrategy: Optional<NamingStrategy>,
-        @Qualifier("db1JdbcCustomConversions")
+        @Qualifier("db2JdbcCustomConversions")
         customConversions: JdbcCustomConversions,
-        @Qualifier("db1JdbcManagedTypes")
+        @Qualifier("db2JdbcManagedTypes")
         jdbcManagedTypes: RelationalManagedTypes,
     ): JdbcMappingContext {
         val mappingContext = JdbcMappingContext(namingStrategy.orElse(DefaultNamingStrategy.INSTANCE))
@@ -76,10 +72,10 @@ class Db1Config : AbstractJdbcConfiguration() {
         return mappingContext
     }
 
-    @Bean("db1JdbcCustomConversions")
+    @Bean("db2JdbcCustomConversions")
     override fun jdbcCustomConversions(
     ): JdbcCustomConversions {
-        val dialect = jdbcDialect(NamedParameterJdbcTemplate(db1DataSource()))
+        val dialect = jdbcDialect(NamedParameterJdbcTemplate(db2DataSource()))
         val simpleTypeHolder = if (dialect.simpleTypes().isEmpty())
             JdbcSimpleTypes.HOLDER
         else
@@ -98,61 +94,89 @@ class Db1Config : AbstractJdbcConfiguration() {
         )
     }
 
-    @Bean("db1JdbcManagedTypes")
+    @Bean("db2JdbcManagedTypes")
     override fun jdbcManagedTypes(): RelationalManagedTypes = super.jdbcManagedTypes()
 
-    @Bean("db1IdGeneratingBeforeSaveCallback")
+    @Bean("db2IdGeneratingBeforeSaveCallback")
     override fun idGeneratingBeforeSaveCallback(
-        @Qualifier("db1JdbcMappingContext")
+        @Qualifier("db2JdbcMappingContext")
         mappingContext: JdbcMappingContext,
-        @Qualifier("db1JdbcTemplate")
+        @Qualifier("db2JdbcTemplate")
         operations: NamedParameterJdbcOperations,
-        @Qualifier("db1JdbcDialect")
+        @Qualifier("db2JdbcDialect")
         dialect: Dialect,
     ): IdGeneratingEntityCallback = super.idGeneratingBeforeSaveCallback(mappingContext, operations, dialect)
 
-    @Bean("db1JdbcDialect")
+    @Bean("db2JdbcDialect")
     override fun jdbcDialect(
-        @Qualifier("db1JdbcTemplate")
+        @Qualifier("db2JdbcTemplate")
         operations: NamedParameterJdbcOperations,
     ): Dialect = super.jdbcDialect(operations)
 
-    @Bean("db1JdbcConverter")
+    @Bean("db2JdbcConverter")
     override fun jdbcConverter(
-        @Qualifier("db1JdbcMappingContext")
+        @Qualifier("db2JdbcMappingContext")
         mappingContext: JdbcMappingContext,
-        @Qualifier("db1JdbcTemplate")
+        @Qualifier("db2JdbcTemplate")
         operations: NamedParameterJdbcOperations,
-        @Qualifier("db1DataAccessStrategyBean")
+        @Qualifier("db2DataAccessStrategyBean")
         @Lazy relationResolver: RelationResolver,
-        @Qualifier("db1JdbcCustomConversions")
+        @Qualifier("db2JdbcCustomConversions")
         conversions: JdbcCustomConversions,
-        @Qualifier("db1JdbcDialect")
+        @Qualifier("db2JdbcDialect")
         dialect: Dialect,
     ): JdbcConverter = super.jdbcConverter(mappingContext, operations, relationResolver, conversions, dialect)
 
-    @Bean("db1DataAccessStrategyBean")
+    @Bean("db2DataAccessStrategyBean")
     override fun dataAccessStrategyBean(
-        @Qualifier("db1JdbcTemplate")
+        @Qualifier("db2JdbcTemplate")
         operations: NamedParameterJdbcOperations,
-        @Qualifier("db1JdbcConverter")
+        @Qualifier("db2JdbcConverter")
         jdbcConverter: JdbcConverter,
-        @Qualifier("db1JdbcMappingContext")
+        @Qualifier("db2JdbcMappingContext")
         context: JdbcMappingContext,
-        @Qualifier("db1JdbcDialect")
+        @Qualifier("db2JdbcDialect")
         dialect: Dialect,
     ): DataAccessStrategy = super.dataAccessStrategyBean(operations, jdbcConverter, context, dialect)
 
-    @Bean("db1JdbcAggregateTemplate")
+    @Bean("db2JdbcAggregateTemplate")
     override fun jdbcAggregateTemplate(
         applicationContext: ApplicationContext,
-        @Qualifier("db1JdbcMappingContext")
+        @Qualifier("db2JdbcMappingContext")
         mappingContext: JdbcMappingContext,
-        @Qualifier("db1JdbcConverter")
+        @Qualifier("db2JdbcConverter")
         converter: JdbcConverter,
-        @Qualifier("db1DataAccessStrategyBean")
+        @Qualifier("db2DataAccessStrategyBean")
         dataAccessStrategy: DataAccessStrategy,
     ): JdbcAggregateTemplate =
         super.jdbcAggregateTemplate(applicationContext, mappingContext, converter, dataAccessStrategy)
+
+    @Bean
+    fun db2JdbcRepositoryFactory(
+        @Qualifier("db2DataAccessStrategyBean")
+        dataAccessStrategy: DataAccessStrategy,
+        @Qualifier("db2JdbcMappingContext")
+        context: JdbcMappingContext,
+        @Qualifier("db2JdbcConverter")
+        converter: JdbcConverter,
+        @Qualifier("db2JdbcDialect")
+        dialect: Dialect,
+        publisher: ApplicationEventPublisher,
+        @Qualifier("db2JdbcTemplate")
+        operations: NamedParameterJdbcOperations,
+    ): JdbcRepositoryFactory = JdbcRepositoryFactory(
+        dataAccessStrategy,
+        context,
+        converter,
+        dialect,
+        publisher,
+        operations
+    )
+
+    @Bean
+    fun db2SomeEntityRepository(
+        @Qualifier("db2JdbcRepositoryFactory")
+        factory: JdbcRepositoryFactory,
+    ): Db2SomeEntityRepository = factory.getRepository(Db2SomeEntityRepository::class.java)
 
 }
