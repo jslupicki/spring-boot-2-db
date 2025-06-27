@@ -65,7 +65,7 @@ I tried multiple approaches, but I always ended up with the same error that ther
 `Spring Data JDBC` does not know which one to use.
 
 **Solution**: The solution which I found is to create repository beans manually in the configuration classes.
-Example [Db1Config](src/main/kotlin/com/slupicki/springboot2db/config/Db1Config.kt) and method `db1SomeEntityRepository`
+Example [Db1JDBCRepositoryConfig](src/main/kotlin/com/slupicki/springboot2db/config/Db1JDBCRepositoryConfig.kt) and method `db1SomeEntityRepository`
 which use `JdbcRepositoryFactory` to create the repository bean. In this way we will have full control over the
 repository creation process and we can specify which `JdbcMappingContext` to use for each repository.
 Also repositories are the same as created by Spring Data JDBC, so they have all the features like queries
