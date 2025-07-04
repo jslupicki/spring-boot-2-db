@@ -7,7 +7,6 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Lazy
-import org.springframework.data.convert.CustomConversions
 import org.springframework.data.jdbc.core.JdbcAggregateTemplate
 import org.springframework.data.jdbc.core.convert.DataAccessStrategy
 import org.springframework.data.jdbc.core.convert.IdGeneratingEntityCallback
@@ -15,10 +14,7 @@ import org.springframework.data.jdbc.core.convert.JdbcConverter
 import org.springframework.data.jdbc.core.convert.JdbcCustomConversions
 import org.springframework.data.jdbc.core.convert.RelationResolver
 import org.springframework.data.jdbc.core.mapping.JdbcMappingContext
-import org.springframework.data.jdbc.core.mapping.JdbcSimpleTypes
-import org.springframework.data.jdbc.repository.config.AbstractJdbcConfiguration
 import org.springframework.data.jdbc.repository.support.JdbcRepositoryFactory
-import org.springframework.data.mapping.model.SimpleTypeHolder
 import org.springframework.data.relational.RelationalManagedTypes
 import org.springframework.data.relational.core.dialect.Dialect
 import org.springframework.data.relational.core.mapping.DefaultNamingStrategy
@@ -26,12 +22,11 @@ import org.springframework.data.relational.core.mapping.NamingStrategy
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import java.util.Optional
-import javax.sql.DataSource
 
 @Configuration
 class Db1JDBCRepositoryConfig(
-    val db1DataSource: DataSource
-) : AbstractJdbcConfiguration() {
+    val db1JdbcTemplate: NamedParameterJdbcTemplate,
+) : CommonJdbcConfiguration() {
 
     @Bean
     fun db1NamingStrategy(): NamingStrategy = DefaultNamingStrategy.INSTANCE
@@ -46,32 +41,14 @@ class Db1JDBCRepositoryConfig(
         jdbcManagedTypes: RelationalManagedTypes,
     ): JdbcMappingContext {
         val mappingContext = JdbcMappingContext(namingStrategy.orElse(DefaultNamingStrategy.INSTANCE))
-        mappingContext.setSimpleTypeHolder(customConversions.getSimpleTypeHolder())
+        mappingContext.setSimpleTypeHolder(customConversions.simpleTypeHolder)
         mappingContext.setManagedTypes(jdbcManagedTypes)
         return mappingContext
     }
 
     @Bean("db1JdbcCustomConversions")
     override fun jdbcCustomConversions(
-    ): JdbcCustomConversions {
-        val dialect = jdbcDialect(NamedParameterJdbcTemplate(db1DataSource))
-        val simpleTypeHolder = if (dialect.simpleTypes().isEmpty())
-            JdbcSimpleTypes.HOLDER
-        else
-            SimpleTypeHolder(dialect.simpleTypes(), JdbcSimpleTypes.HOLDER)
-
-        val converters: MutableList<Any?> = ArrayList<Any?>()
-        converters.addAll(dialect.getConverters())
-        converters.addAll(JdbcCustomConversions.storeConverters())
-
-        return JdbcCustomConversions(
-            CustomConversions.StoreConversions.of(
-                simpleTypeHolder,
-                converters
-            ),
-            userConverters()
-        )
-    }
+    ): JdbcCustomConversions = createConversions(db1JdbcTemplate)
 
     @Bean("db1JdbcManagedTypes")
     override fun jdbcManagedTypes(): RelationalManagedTypes = super.jdbcManagedTypes()
