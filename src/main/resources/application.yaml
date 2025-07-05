@@ -29,3 +29,7 @@ resilience4j:
         wait-duration: 500ms
         retryExceptions:
           - java.lang.Throwable
+
+logging:
+  level:
+    com.slupicki.springboot2db: DEBUG
