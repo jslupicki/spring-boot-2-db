@@ -3,6 +3,7 @@ package com.slupicki.springboot2db
 import com.slupicki.springboot2db.domain.SomeEntity
 import com.slupicki.springboot2db.repo.db1.Db1SomeEntityRepository
 import com.slupicki.springboot2db.repo.db2.Db2SomeEntityRepository
+import com.slupicki.springboot2db.service.TransactionService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -10,6 +11,7 @@ import org.springframework.boot.autoconfigure.data.jdbc.JdbcRepositoriesAutoConf
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
+import org.springframework.transaction.annotation.EnableTransactionManagement
 
 @SpringBootApplication(
     exclude = [
@@ -26,6 +28,7 @@ class SpringBoot2DbApplication {
     fun runner(
         db1SomeEntityRepository: Db1SomeEntityRepository,
         db2SomeEntityRepository: Db2SomeEntityRepository,
+        transactionService: TransactionService,
     ) = CommandLineRunner { _ ->
         log.info { "Application started" }
         (1..5).forEach { i ->
@@ -53,6 +56,11 @@ class SpringBoot2DbApplication {
                     2
                 )
             }"
+        }
+        try {
+            transactionService.performTransaction(3)
+        } catch (e: Exception) {
+            log.error { "Got error in transactionService.performTransaction(3)" }
         }
         log.info { "Application ended" }
     }

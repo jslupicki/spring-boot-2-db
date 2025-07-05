@@ -1,5 +1,6 @@
 package com.slupicki.springboot2db.config
 
+import com.slupicki.springboot2db.observability.LoggingTransactionManager
 import com.zaxxer.hikari.HikariDataSource
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -28,5 +29,5 @@ class Db2Config {
 
     @Bean
     fun db2TransactionManager(db2DataSource: DataSource): DataSourceTransactionManager =
-        DataSourceTransactionManager(db2DataSource)
+        LoggingTransactionManager(db2DataSource)
 }

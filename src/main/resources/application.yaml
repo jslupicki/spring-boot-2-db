@@ -21,3 +21,11 @@ db2:
   hikari:
     pool-name: HikariPool-DB2
 
+resilience4j:
+  retry:
+    instances:
+      sqlRetry:
+        max-attempts: 3
+        wait-duration: 500ms
+        retryExceptions:
+          - java.lang.Throwable
